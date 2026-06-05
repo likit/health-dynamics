@@ -22,6 +22,11 @@ class DimPerson(db.Model):
         back_populates="person",
         lazy="dynamic",
     )
+    trajectories = db.relationship(
+        "FactHealthTrajectory",
+        back_populates="person",
+        lazy="dynamic",
+    )
 
 
 class DimDate(db.Model):
@@ -41,6 +46,18 @@ class DimDate(db.Model):
         back_populates="date",
         lazy="dynamic",
     )
+    trajectories_from = db.relationship(
+        "FactHealthTrajectory",
+        back_populates="from_date",
+        lazy="dynamic",
+        foreign_keys="FactHealthTrajectory.from_date_key",
+    )
+    trajectories_to = db.relationship(
+        "FactHealthTrajectory",
+        back_populates="to_date",
+        lazy="dynamic",
+        foreign_keys="FactHealthTrajectory.to_date_key",
+    )
 
 
 class DimMeasure(db.Model):
@@ -54,6 +71,11 @@ class DimMeasure(db.Model):
 
     measurements = db.relationship(
         "FactCheckupMeasurement",
+        back_populates="measure",
+        lazy="dynamic",
+    )
+    trajectories = db.relationship(
+        "FactHealthTrajectory",
         back_populates="measure",
         lazy="dynamic",
     )
@@ -116,3 +138,56 @@ class FactPersonCheckupSnapshot(db.Model):
 
     person = db.relationship("DimPerson", back_populates="snapshots")
     date = db.relationship("DimDate", back_populates="snapshots")
+
+
+class FactHealthTrajectory(db.Model):
+    __tablename__ = "fact_health_trajectory"
+
+    trajectory_key = db.Column(db.Integer, primary_key=True)
+    person_key = db.Column(
+        db.Integer,
+        db.ForeignKey("dim_person.person_key"),
+        nullable=False,
+        index=True,
+    )
+    measure_key = db.Column(
+        db.Integer,
+        db.ForeignKey("dim_measure.measure_key"),
+        nullable=False,
+        index=True,
+    )
+    from_date_key = db.Column(
+        db.Integer,
+        db.ForeignKey("dim_date.date_key"),
+        nullable=False,
+        index=True,
+    )
+    to_date_key = db.Column(
+        db.Integer,
+        db.ForeignKey("dim_date.date_key"),
+        nullable=False,
+        index=True,
+    )
+    previous_value = db.Column(db.Float, nullable=True)
+    current_value = db.Column(db.Float, nullable=True)
+    delta_value = db.Column(db.Float, nullable=True)
+    percent_change = db.Column(db.Float, nullable=True)
+    previous_status = db.Column(db.String(32), nullable=False, default="unknown")
+    current_status = db.Column(db.String(32), nullable=False, default="unknown")
+    status_transition = db.Column(db.String(64), nullable=False)
+    trajectory_class = db.Column(db.String(32), nullable=False)
+    risk_direction = db.Column(db.String(32), nullable=False)
+    interpretation = db.Column(db.String(255), nullable=True)
+
+    person = db.relationship("DimPerson", back_populates="trajectories")
+    measure = db.relationship("DimMeasure", back_populates="trajectories")
+    from_date = db.relationship(
+        "DimDate",
+        back_populates="trajectories_from",
+        foreign_keys=[from_date_key],
+    )
+    to_date = db.relationship(
+        "DimDate",
+        back_populates="trajectories_to",
+        foreign_keys=[to_date_key],
+    )

@@ -8,14 +8,94 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
     >
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.8/css/dataTables.bulma.min.css"
+    >
+    <style>
+      :root {
+        --brand-ink: #1e293b;
+        --brand-accent: #0f766e;
+        --brand-soft: #f3f7f7;
+      }
+
+      body {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 28%),
+          linear-gradient(180deg, #f8fbfb 0%, #eef4f4 100%);
+        color: var(--brand-ink);
+      }
+
+      .app-shell {
+        padding: 1.5rem;
+      }
+
+      .app-panel {
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 1.25rem;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+        backdrop-filter: blur(8px);
+      }
+
+      .metric-card {
+        background: linear-gradient(160deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.95));
+        border-radius: 1rem;
+        height: 100%;
+      }
+
+      .metric-card .heading {
+        letter-spacing: 0.08em;
+      }
+
+      .summary-value {
+        color: var(--brand-accent);
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .table-link {
+        font-weight: 600;
+      }
+
+      .navbar.is-transparent {
+        background: transparent;
+      }
+
+      .dataTables_wrapper .dataTables_filter input,
+      .dataTables_wrapper .dataTables_length select {
+        border-radius: 0.75rem;
+      }
+    </style>
+    {% block extra_head %}{% endblock %}
   </head>
   <body>
-    <section class="hero is-light is-fullheight">
-      <div class="hero-body">
-        <div class="container has-text-centered">
+    <div class="app-shell">
+      <div class="container is-fluid">
+        <nav class="navbar is-transparent mb-4" aria-label="main navigation">
+          <div class="navbar-brand">
+            <a class="navbar-item pl-0" href="{{ url_for('main.home') }}">
+              <span class="title is-4 mb-0">Health Dynamics</span>
+            </a>
+          </div>
+          <div class="navbar-menu is-active">
+            <div class="navbar-end">
+              <a class="navbar-item" href="{{ url_for('main.home') }}">Dashboard</a>
+              <a class="navbar-item" href="{{ url_for('main.persons') }}">Persons</a>
+            </div>
+          </div>
+        </nav>
+
+        <main class="app-panel p-5">
           {% block content %}{% endblock %}
-        </div>
+        </main>
       </div>
-    </section>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bulma.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
   </body>
 </html>

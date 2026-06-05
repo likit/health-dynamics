@@ -3,6 +3,34 @@
 {% block title %}Health Dynamics{% endblock %}
 
 {% block content %}
-<h1 class="title is-1">Health Dynamics</h1>
-<p class="subtitle is-5">Foundational Flask project scaffold</p>
+<section class="mb-6">
+  <p class="is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Warehouse Overview</p>
+  <h1 class="title is-2 mb-2">Health Dynamics</h1>
+  <p class="subtitle is-5 has-text-grey mb-0">Current record counts from the star schema warehouse.</p>
+</section>
+
+<section class="columns is-variable is-4">
+  <div class="column">
+    <div class="metric-card box">
+      <p class="heading has-text-grey">Total Persons</p>
+      <p class="summary-value mt-3">{{ totals.persons }}</p>
+    </div>
+  </div>
+  <div class="column">
+    <div class="metric-card box">
+      <p class="heading has-text-grey">Total Measurements</p>
+      <p class="summary-value mt-3">{{ totals.measurements }}</p>
+    </div>
+  </div>
+  <div class="column">
+    <div class="metric-card box">
+      <p class="heading has-text-grey">Total Snapshots</p>
+      <p class="summary-value mt-3">{{ totals.snapshots }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="mt-6">
+  <a class="button is-primary is-medium" href="{{ url_for('main.persons') }}">Browse Persons</a>
+</section>
 {% endblock %}

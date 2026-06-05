@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}{{ person.full_name }} | Health Dynamics{% endblock %}
+
+{% block content %}
+<section class="mb-6">
+  <a class="button is-light mb-4" href="{{ url_for('main.persons') }}">Back to Persons</a>
+  <p class="is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Person Profile</p>
+  <h1 class="title is-3 mb-1">{{ person.full_name }}</h1>
+  <p class="has-text-grey mb-0">CMS {{ person.cms_code }}{% if person.employee_id %} · Employee {{ person.employee_id }}{% endif %}</p>
+</section>
+
+<section class="columns is-variable is-5 mb-5">
+  <div class="column is-5">
+    <div class="box metric-card">
+      <h2 class="title is-5">Demographics</h2>
+      <table class="table is-fullwidth">
+        <tbody>
+          <tr><th>Prefix</th><td>{{ person.prefix or "-" }}</td></tr>
+          <tr><th>Gender</th><td>{{ person.gender or "-" }}</td></tr>
+          <tr><th>Department</th><td>{{ person.department or "-" }}</td></tr>
+          <tr><th>CMS Code</th><td>{{ person.cms_code }}</td></tr>
+          <tr><th>Employee ID</th><td>{{ person.employee_id or "-" }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="column">
+    <div class="columns is-variable is-4">
+      <div class="column">
+        <div class="box metric-card">
+          <p class="heading has-text-grey">Latest BMI</p>
+          <p class="summary-value mt-3">
+            {% if latest_snapshot and latest_snapshot.bmi is not none %}
+              {{ "%.2f"|format(latest_snapshot.bmi) }}
+            {% else %}
+              -
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="box metric-card">
+          <p class="heading has-text-grey">Latest Blood Pressure</p>
+          <p class="summary-value mt-3" style="font-size: 2rem;">
+            {% if latest_snapshot and latest_snapshot.systolic_bp is not none and latest_snapshot.diastolic_bp is not none %}
+              {{ "%.0f"|format(latest_snapshot.systolic_bp) }}/{{ "%.0f"|format(latest_snapshot.diastolic_bp) }}
+            {% else %}
+              -
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="box mt-4">
+      <h2 class="title is-5">Latest Snapshot</h2>
+      {% if latest_snapshot %}
+      <table class="table is-fullwidth">
+        <tbody>
+          <tr><th>Age</th><td>{{ latest_snapshot.age if latest_snapshot.age is not none else "-" }}</td></tr>
+          <tr><th>Weight</th><td>{{ "%.2f"|format(latest_snapshot.weight) if latest_snapshot.weight is not none else "-" }}</td></tr>
+          <tr><th>Height</th><td>{{ "%.2f"|format(latest_snapshot.height) if latest_snapshot.height is not none else "-" }}</td></tr>
+          <tr><th>Checkup Date</th><td>{{ latest_snapshot.date.checkup_date.isoformat() if latest_snapshot.date else "-" }}</td></tr>
+          <tr><th>Source File</th><td>{{ latest_snapshot.source_file or "-" }}</td></tr>
+        </tbody>
+      </table>
+      {% else %}
+      <p class="has-text-grey mb-0">No snapshot records available.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="level mb-3">
+    <div class="level-left">
+      <div>
+        <h2 class="title is-4 mb-1">Laboratory Values</h2>
+        <p class="has-text-grey mb-0">All recorded laboratory measurements for this person.</p>
+      </div>
+    </div>
+  </div>
+  <div class="table-container">
+    <table id="measurements-table" class="table is-fullwidth is-striped is-hoverable">
+      <thead>
+        <tr>
+          <th>Checkup Date</th>
+          <th>Measure Code</th>
+          <th>Measure Name</th>
+          <th>Value</th>
+          <th>Unit</th>
+          <th>Source File</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for measurement in measurements %}
+        <tr>
+          <td>{{ measurement.date.checkup_date.isoformat() if measurement.date else "-" }}</td>
+          <td>{{ measurement.measure.measure_code }}</td>
+          <td>{{ measurement.measure.measure_name }}</td>
+          <td>
+            {% if measurement.value_numeric is not none %}
+              {{ measurement.value_numeric }}
+            {% else %}
+              {{ measurement.raw_value or "-" }}
+            {% endif %}
+          </td>
+          <td>{{ measurement.measure.unit or "-" }}</td>
+          <td>{{ measurement.source_file or "-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  $(function () {
+    $("#measurements-table").DataTable({
+      order: [[0, "desc"], [1, "asc"]],
+      language: {
+        search: "Filter labs:"
+      }
+    });
+  });
+</script>
+{% endblock %}

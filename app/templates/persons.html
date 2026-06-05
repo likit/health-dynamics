@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Persons | Health Dynamics{% endblock %}
+
+{% block content %}
+<section class="level mb-5">
+  <div class="level-left">
+    <div>
+      <p class="is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Directory</p>
+      <h1 class="title is-3 mb-1">Persons</h1>
+      <p class="has-text-grey mb-0">Search by name, employee ID, or CMS code.</p>
+    </div>
+  </div>
+</section>
+
+<form method="get" class="box mb-5">
+  <div class="field has-addons">
+    <div class="control is-expanded">
+      <input
+        class="input is-medium"
+        type="text"
+        name="q"
+        value="{{ search_query }}"
+        placeholder="Search by name, employee ID, or CMS code"
+      >
+    </div>
+    <div class="control">
+      <button class="button is-primary is-medium" type="submit">Search</button>
+    </div>
+  </div>
+</form>
+
+<div class="table-container">
+  <table id="persons-table" class="table is-fullwidth is-striped is-hoverable">
+    <thead>
+      <tr>
+        <th>CMS Code</th>
+        <th>Employee ID</th>
+        <th>Name</th>
+        <th>Department</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in people %}
+      <tr>
+        <td>{{ person.cms_code }}</td>
+        <td>{{ person.employee_id or "-" }}</td>
+        <td>{{ person.full_name }}</td>
+        <td>{{ person.department or "-" }}</td>
+        <td>
+          <a class="table-link" href="{{ url_for('main.person_detail', person_id=person.person_key) }}">View</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  $(function () {
+    $("#persons-table").DataTable({
+      pageLength: 25,
+      order: [[2, "asc"]],
+      language: {
+        search: "Filter table:"
+      }
+    });
+  });
+</script>
+{% endblock %}

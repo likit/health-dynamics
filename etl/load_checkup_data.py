@@ -16,12 +16,44 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from app import create_app, db
-from app.models import DimDate, DimPerson, FactPersonCheckupSnapshot
+from app.models import (
+    DimDate,
+    DimMeasure,
+    DimPerson,
+    FactCheckupMeasurement,
+    FactPersonCheckupSnapshot,
+)
 
 TARGET_SHEET = "Sheet1"
 MAX_HEADER_SCAN_ROWS = 20
 DEFAULT_WORKBOOK_PATH = BASE_DIR / "data" / "raw" / "เทคนิค_2565.xlsx"
 DATE_CELL = "H2"
+LAB_MEASURE_CODES = [
+    "Gluc",
+    "BUN",
+    "CRE",
+    "Uric",
+    "Chol",
+    "TG",
+    "AST",
+    "ALT",
+    "ALK",
+    "HDL",
+    "LDL",
+]
+LAB_MEASURE_METADATA = {
+    "Gluc": {"measure_name": "Glucose", "category": "Laboratory", "unit": None},
+    "BUN": {"measure_name": "Blood Urea Nitrogen", "category": "Laboratory", "unit": None},
+    "CRE": {"measure_name": "Creatinine", "category": "Laboratory", "unit": None},
+    "Uric": {"measure_name": "Uric Acid", "category": "Laboratory", "unit": None},
+    "Chol": {"measure_name": "Cholesterol", "category": "Laboratory", "unit": None},
+    "TG": {"measure_name": "Triglycerides", "category": "Laboratory", "unit": None},
+    "AST": {"measure_name": "Aspartate Aminotransferase", "category": "Laboratory", "unit": None},
+    "ALT": {"measure_name": "Alanine Aminotransferase", "category": "Laboratory", "unit": None},
+    "ALK": {"measure_name": "Alkaline Phosphatase", "category": "Laboratory", "unit": None},
+    "HDL": {"measure_name": "High-Density Lipoprotein", "category": "Laboratory", "unit": None},
+    "LDL": {"measure_name": "Low-Density Lipoprotein", "category": "Laboratory", "unit": None},
+}
 
 FIELD_ALIASES = {
     "cms_code": {
@@ -62,6 +94,17 @@ FIELD_ALIASES = {
         "ความดัน",
         "ความดันโลหิต",
     },
+    "Gluc": {"gluc", "glucose"},
+    "BUN": {"bun"},
+    "CRE": {"cre", "creatinine"},
+    "Uric": {"uric", "uricacid"},
+    "Chol": {"chol", "cholesterol"},
+    "TG": {"tg", "triglyceride", "triglycerides"},
+    "AST": {"ast", "sgot"},
+    "ALT": {"alt", "sgpt"},
+    "ALK": {"alk", "alp", "alkalinephosphatase"},
+    "HDL": {"hdl"},
+    "LDL": {"ldl"},
 }
 
 
@@ -70,11 +113,17 @@ class ImportStats:
     rows_seen: int = 0
     rows_imported: int = 0
     rows_skipped: int = 0
+    persons_loaded: int = 0
     people_inserted: int = 0
     people_updated: int = 0
     dates_inserted: int = 0
+    measures_inserted: int = 0
+    snapshots_loaded: int = 0
     snapshots_inserted: int = 0
     snapshots_updated: int = 0
+    measurements_loaded: int = 0
+    measurements_inserted: int = 0
+    measurements_updated: int = 0
 
 
 def parse_args() -> argparse.Namespace:
@@ -148,7 +197,17 @@ def resolve_columns(column_names: list[str]) -> dict[str, str]:
         else:
             missing.append(field_name)
 
-    required_fields = {"cms_code", "employee_id", "full_name", "age", "weight", "height", "bmi", "blood_pressure"}
+    required_fields = {
+        "cms_code",
+        "employee_id",
+        "full_name",
+        "age",
+        "weight",
+        "height",
+        "bmi",
+        "blood_pressure",
+        *LAB_MEASURE_CODES,
+    }
     required_missing = sorted(required_fields.intersection(missing))
     if required_missing:
         raise ValueError(f"Missing required columns: {', '.join(required_missing)}")
@@ -312,6 +371,21 @@ def get_or_create_date(checkup_date: date, stats: ImportStats) -> DimDate:
     return dim_date
 
 
+def get_or_create_measure(measure_code: str, stats: ImportStats) -> DimMeasure:
+    measure = DimMeasure.query.filter_by(measure_code=measure_code).one_or_none()
+    if measure is None:
+        metadata = LAB_MEASURE_METADATA[measure_code]
+        measure = DimMeasure(
+            measure_code=measure_code,
+            measure_name=metadata["measure_name"],
+            category=metadata["category"],
+            unit=metadata["unit"],
+        )
+        db.session.add(measure)
+        stats.measures_inserted += 1
+    return measure
+
+
 def build_snapshot_payload(row: pd.Series, column_map: dict[str, str], source_file: str) -> dict[str, Any]:
     systolic_bp, diastolic_bp = parse_blood_pressure(row[column_map["blood_pressure"]])
     return {
@@ -329,6 +403,50 @@ def row_has_identity(cms_code: Any, employee_id: Any, full_name: Any) -> bool:
     return not (is_empty(cms_code) and is_empty(employee_id) and is_empty(full_name))
 
 
+def upsert_measurements(
+    row: pd.Series,
+    column_map: dict[str, str],
+    person: DimPerson,
+    dim_date: DimDate,
+    source_file: str,
+    measure_dimensions: dict[str, DimMeasure],
+    stats: ImportStats,
+) -> None:
+    for measure_code in LAB_MEASURE_CODES:
+        raw_value = row[column_map[measure_code]]
+        if is_empty(raw_value):
+            continue
+
+        measure = measure_dimensions[measure_code]
+        measurement = FactCheckupMeasurement.query.filter_by(
+            person_key=person.person_key,
+            date_key=dim_date.date_key,
+            measure_key=measure.measure_key,
+            source_file=source_file,
+        ).one_or_none()
+        numeric_value = parse_numeric(raw_value)
+        raw_text = clean_value(raw_value)
+
+        if measurement is None:
+            measurement = FactCheckupMeasurement(
+                person_key=person.person_key,
+                date_key=dim_date.date_key,
+                measure_key=measure.measure_key,
+                value_numeric=numeric_value,
+                raw_value=raw_text,
+                source_file=source_file,
+            )
+            db.session.add(measurement)
+            stats.measurements_inserted += 1
+        else:
+            measurement.value_numeric = numeric_value
+            measurement.raw_value = raw_text
+            measurement.source_file = source_file
+            stats.measurements_updated += 1
+
+        stats.measurements_loaded += 1
+
+
 def import_workbook(workbook_path: Path) -> ImportStats:
     stats = ImportStats()
     checkup_date = read_checkup_date(workbook_path)
@@ -336,6 +454,10 @@ def import_workbook(workbook_path: Path) -> ImportStats:
     column_map = resolve_columns(data_frame.columns.tolist())
     source_file = workbook_path.name
     dim_date = get_or_create_date(checkup_date, stats)
+    measure_dimensions = {
+        measure_code: get_or_create_measure(measure_code, stats)
+        for measure_code in LAB_MEASURE_CODES
+    }
     db.session.flush()
 
     for _, row in data_frame.iterrows():
@@ -361,6 +483,7 @@ def import_workbook(workbook_path: Path) -> ImportStats:
             stats,
         )
         db.session.flush()
+        stats.persons_loaded += 1
 
         snapshot_payload = build_snapshot_payload(row, column_map, source_file)
         snapshot = FactPersonCheckupSnapshot.query.filter_by(
@@ -381,6 +504,17 @@ def import_workbook(workbook_path: Path) -> ImportStats:
             for key, value in snapshot_payload.items():
                 setattr(snapshot, key, value)
             stats.snapshots_updated += 1
+        stats.snapshots_loaded += 1
+
+        upsert_measurements(
+            row=row,
+            column_map=column_map,
+            person=person,
+            dim_date=dim_date,
+            source_file=source_file,
+            measure_dimensions=measure_dimensions,
+            stats=stats,
+        )
 
         stats.rows_imported += 1
 
@@ -398,14 +532,20 @@ def print_report(workbook_path: Path, checkup_date: date, stats: ImportStats) ->
     print("")
     print("Statistics")
     print("----------")
+    print(f"Persons loaded: {stats.persons_loaded}")
+    print(f"Snapshots loaded: {stats.snapshots_loaded}")
+    print(f"Measurements loaded: {stats.measurements_loaded}")
     print(f"Rows seen: {stats.rows_seen}")
     print(f"Rows imported: {stats.rows_imported}")
     print(f"Rows skipped: {stats.rows_skipped}")
     print(f"dim_person inserted: {stats.people_inserted}")
     print(f"dim_person updated: {stats.people_updated}")
     print(f"dim_date inserted: {stats.dates_inserted}")
+    print(f"dim_measure inserted: {stats.measures_inserted}")
     print(f"fact_person_checkup_snapshot inserted: {stats.snapshots_inserted}")
     print(f"fact_person_checkup_snapshot updated: {stats.snapshots_updated}")
+    print(f"fact_checkup_measurement inserted: {stats.measurements_inserted}")
+    print(f"fact_checkup_measurement updated: {stats.measurements_updated}")
 
 
 def main() -> int:
