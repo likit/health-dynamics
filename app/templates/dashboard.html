@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Population Dashboard | Health Dynamics{% endblock %}
+
+{% block extra_head %}
+<style>
+  .dashboard-surface {
+    color: #1f2937;
+  }
+
+  .dashboard-card {
+    border-radius: 1rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .dashboard-metric {
+    background: linear-gradient(135deg, #f8fffe, #ecfeff);
+  }
+
+  .dashboard-metric-label {
+    color: #5b6b79;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .dashboard-metric-value {
+    color: #0f766e;
+    font-size: 2.3rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .dashboard-table th {
+    white-space: nowrap;
+  }
+
+  .dashboard-note {
+    background: #f8fafc;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 0.9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-surface">
+  <section class="mb-5">
+    <p class="is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Population Overview</p>
+    <h1 class="title is-2 mb-2">Health Dynamics Dashboard</h1>
+    <p class="subtitle is-5 has-text-grey mb-0">Warehouse-level summaries for population health, laboratory status, and trajectory outcomes.</p>
+  </section>
+
+  <section class="columns is-multiline is-variable is-4 mb-4">
+    <div class="column is-6-tablet is-3-desktop">
+      <div class="box dashboard-card dashboard-metric">
+        <div class="dashboard-metric-label mb-3">Total Persons</div>
+        <div class="dashboard-metric-value">{{ totals.persons }}</div>
+      </div>
+    </div>
+    <div class="column is-6-tablet is-3-desktop">
+      <div class="box dashboard-card dashboard-metric">
+        <div class="dashboard-metric-label mb-3">Total Checkup Snapshots</div>
+        <div class="dashboard-metric-value">{{ totals.snapshots }}</div>
+      </div>
+    </div>
+    <div class="column is-6-tablet is-3-desktop">
+      <div class="box dashboard-card dashboard-metric">
+        <div class="dashboard-metric-label mb-3">Total Laboratory Measurements</div>
+        <div class="dashboard-metric-value">{{ totals.measurements }}</div>
+      </div>
+    </div>
+    <div class="column is-6-tablet is-3-desktop">
+      <div class="box dashboard-card dashboard-metric">
+        <div class="dashboard-metric-label mb-3">Total Trajectory Records</div>
+        <div class="dashboard-metric-value">{{ totals.trajectories }}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="columns is-multiline is-variable is-4">
+    <div class="column is-6-desktop">
+      <div class="box dashboard-card">
+        <h2 class="title is-4 mb-3">BMI Status Distribution</h2>
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th class="has-text-right">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for status, count in bmi_distribution %}
+              <tr>
+                <td>{{ status }}</td>
+                <td class="has-text-right">{{ count }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="column is-6-desktop">
+      <div class="box dashboard-card">
+        <h2 class="title is-4 mb-3">Glucose Status Distribution</h2>
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th class="has-text-right">Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for status, count in glucose_distribution %}
+                <tr>
+                  <td>{{ status }}</td>
+                  <td class="has-text-right">{{ count }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="column is-12">
+      <div class="box dashboard-card">
+        <h2 class="title is-4 mb-3">Lipid Status Distribution</h2>
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
+              <thead>
+                <tr>
+                  <th>Measure</th>
+                  <th class="has-text-right">Normal</th>
+                  <th class="has-text-right">Borderline</th>
+                  <th class="has-text-right">Abnormal</th>
+                  <th class="has-text-right">Unknown</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in lipid_distribution %}
+                <tr>
+                  <td>{{ row.measure_code }}</td>
+                  <td class="has-text-right">{{ row.normal }}</td>
+                  <td class="has-text-right">{{ row.borderline }}</td>
+                  <td class="has-text-right">{{ row.abnormal }}</td>
+                  <td class="has-text-right">{{ row.unknown }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="column is-6-desktop">
+      <div class="box dashboard-card">
+        <h2 class="title is-4 mb-3">Trajectory Class Distribution</h2>
+        {% if has_trajectory_data %}
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
+              <thead>
+                <tr>
+                  <th>Trajectory Class</th>
+                  <th class="has-text-right">Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for trajectory_class, count in trajectory_class_distribution %}
+                <tr>
+                  <td>{{ trajectory_class }}</td>
+                  <td class="has-text-right">{{ count }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="notification dashboard-note mb-0">
+          No trajectory records available. Load multi-year data to enable trajectory analysis.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="column is-6-desktop">
+      <div class="box dashboard-card">
+        <h2 class="title is-4 mb-3">Status Transition Distribution</h2>
+        {% if has_trajectory_data %}
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
+              <thead>
+                <tr>
+                  <th>Status Transition</th>
+                  <th class="has-text-right">Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for status_transition, count in status_transition_distribution %}
+                <tr>
+                  <td>{{ status_transition }}</td>
+                  <td class="has-text-right">{{ count }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="notification dashboard-note mb-0">
+          No trajectory records available. Load multi-year data to enable trajectory analysis.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
