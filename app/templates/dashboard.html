@@ -4,98 +4,391 @@
 
 {% block extra_head %}
 <style>
-  .dashboard-surface {
-    color: #1f2937;
-  }
-
-  .dashboard-card {
-    border-radius: 1rem;
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-  }
-
-  .dashboard-metric {
-    background: linear-gradient(135deg, #f8fffe, #ecfeff);
-  }
-
-  .dashboard-metric-label {
-    color: #5b6b79;
-    font-size: 0.8rem;
-    font-weight: 700;
+  .decision-kicker {
     letter-spacing: 0.08em;
-    text-transform: uppercase;
   }
 
-  .dashboard-metric-value {
-    color: #0f766e;
+  .decision-note {
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.95));
+    border: 1px solid rgba(15, 118, 110, 0.15);
+    border-radius: 1rem;
+  }
+
+  .risk-card {
+    border-radius: 1rem;
+    height: 100%;
+  }
+
+  .risk-card .heading {
+    letter-spacing: 0.08em;
+  }
+
+  .risk-value {
+    color: var(--brand-accent);
     font-size: 2.3rem;
     font-weight: 700;
     line-height: 1;
+  }
+
+  .section-card {
+    border-radius: 1rem;
   }
 
   .dashboard-table th {
     white-space: nowrap;
   }
 
-  .dashboard-note {
+  .table-caption {
+    color: #64748b;
+  }
+
+  .empty-trajectory-note {
     background: #f8fafc;
-    border: 1px solid rgba(148, 163, 184, 0.24);
+    border: 1px solid rgba(148, 163, 184, 0.22);
     border-radius: 0.9rem;
+  }
+
+  .movement-callout {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(255, 255, 255, 0.95));
+    border: 1px solid rgba(14, 165, 233, 0.14);
+    border-radius: 0.9rem;
+  }
+
+  .ai-summary-card {
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 1rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .ai-summary-output {
+    min-height: 120px;
+    white-space: pre-wrap;
+  }
+
+  .ask-ai-card textarea {
+    min-height: 110px;
+  }
+
+  .ai-summary-disclaimer {
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+
+  .brief-card {
+    border: 1px solid rgba(15, 118, 110, 0.16);
+    border-radius: 1rem;
+  }
+
+  .brief-chip {
+    min-width: 10rem;
+  }
+
+  .brief-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    align-items: center;
+  }
+
+  .brief-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    color: #475569;
+  }
+
+  .brief-stat-value {
+    color: var(--brand-accent);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .brief-stat-label {
+    font-size: 0.9rem;
+  }
+
+  .exploration-result-panel pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .executive-hero {
+    background: linear-gradient(145deg, rgba(15, 118, 110, 0.12), rgba(255, 255, 255, 0.98));
+    border: 1px solid rgba(15, 118, 110, 0.18);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  }
+
+  .executive-assessment {
+    color: var(--brand-accent);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .placeholder-question {
+    white-space: normal;
+    height: auto;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-surface">
-  <section class="mb-5">
-    <p class="is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Population Overview</p>
-    <h1 class="title is-2 mb-2">Health Dynamics Dashboard</h1>
-    <p class="subtitle is-5 has-text-grey mb-0">Warehouse-level summaries for population health, laboratory status, and trajectory outcomes.</p>
-  </section>
+<section class="mb-5">
+  <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Population Health Decision Dashboard</p>
+  <h1 class="title is-2 mb-3">Health Dynamics</h1>
+  <div class="box decision-note">
+    <p class="mb-0">
+      Instead of asking users to interpret dozens of charts, Health Dynamics begins by briefing decision makers on what changed in the population and what deserves attention.
+    </p>
+  </div>
+</section>
 
-  <section class="columns is-multiline is-variable is-4 mb-4">
-    <div class="column is-6-tablet is-3-desktop">
-      <div class="box dashboard-card dashboard-metric">
-        <div class="dashboard-metric-label mb-3">Total Persons</div>
-        <div class="dashboard-metric-value">{{ totals.persons }}</div>
-      </div>
-    </div>
-    <div class="column is-6-tablet is-3-desktop">
-      <div class="box dashboard-card dashboard-metric">
-        <div class="dashboard-metric-label mb-3">Total Checkup Snapshots</div>
-        <div class="dashboard-metric-value">{{ totals.snapshots }}</div>
-      </div>
-    </div>
-    <div class="column is-6-tablet is-3-desktop">
-      <div class="box dashboard-card dashboard-metric">
-        <div class="dashboard-metric-label mb-3">Total Laboratory Measurements</div>
-        <div class="dashboard-metric-value">{{ totals.measurements }}</div>
-      </div>
-    </div>
-    <div class="column is-6-tablet is-3-desktop">
-      <div class="box dashboard-card dashboard-metric">
-        <div class="dashboard-metric-label mb-3">Total Trajectory Records</div>
-        <div class="dashboard-metric-value">{{ totals.trajectories }}</div>
-      </div>
-    </div>
-  </section>
+<section class="mb-5">
+  <div class="card brief-card executive-hero">
+    <div class="card-content">
+      <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Executive Brief</p>
+      <h2 class="title is-2 mb-3">Population Health Executive Brief</h2>
 
-  <section class="columns is-multiline is-variable is-4">
-    <div class="column is-6-desktop">
-      <div class="box dashboard-card">
-        <h2 class="title is-4 mb-3">BMI Status Distribution</h2>
+      {% if persisted_executive_brief.available %}
+      <div class="box section-card">
+        <div class="content">
+          <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Headline</p>
+          <p class="executive-assessment mb-3">{{ persisted_executive_brief.headline }}</p>
+          <p class="table-caption mb-4">Saved brief for {{ yoy_brief.latest_year }}. It is reused until the underlying verified insight packets change.</p>
+
+          <div class="brief-stats mb-4">
+            <div class="brief-stat">
+              <span class="brief-stat-value">{{ yoy_brief.population_summary.matched_person_count }}</span>
+              <span class="brief-stat-label">Matched People</span>
+            </div>
+            <div class="brief-stat">
+              <span class="brief-stat-value">{{ yoy_brief.population_summary.latest_person_count }}</span>
+              <span class="brief-stat-label">Latest Person Count</span>
+            </div>
+            <div class="brief-stat">
+              <span class="brief-stat-value">{{ yoy_brief.population_summary.previous_person_count }}</span>
+              <span class="brief-stat-label">Previous Person Count</span>
+            </div>
+          </div>
+
+          <h3 class="title is-5 mb-1">Executive Summary</h3>
+          <p>{{ persisted_executive_brief.executive_summary }}</p>
+
+          <h3 class="title is-5 mb-1">Why It Matters</h3>
+          <p>{{ persisted_executive_brief.why_it_matters }}</p>
+
+          <h3 class="title is-5 mb-1">Recommended Next Exploration</h3>
+        </div>
+
+        <div class="buttons">
+          {% for action in persisted_executive_brief.exploration_actions %}
+          <a
+            class="button is-light"
+            href="{{ url_for('main.dashboard_explore', year=action.year, metric=action.metric, dimension=action.dimension, pattern=action.pattern) }}"
+          >{{ action.label }}</a>
+          {% endfor %}
+          {% if not persisted_executive_brief.exploration_actions %}
+            {% for item in persisted_executive_brief.suggested_next_exploration %}
+            <span class="tag is-light is-medium">{{ item }}</span>
+            {% endfor %}
+          {% endif %}
+          <button id="regenerate-executive-brief-button" class="button is-primary is-light" type="button">Regenerate Executive Brief</button>
+        </div>
+
+        <p class="table-caption mt-3 mb-0">
+          Generated via {{ persisted_executive_brief.model_name or "deterministic fallback" }}.
+          Status: {{ persisted_executive_brief.generation_status }} / {{ persisted_executive_brief.validation_status }}.
+          {% if persisted_executive_brief.diagnostic_message %}
+          {{ persisted_executive_brief.diagnostic_message }}
+          {% endif %}
+        </p>
+      </div>
+      {% else %}
+      <div class="notification empty-trajectory-note mb-0">
+        Year-over-year briefing requires at least two checkup years. Current dashboard shows available cross-sectional results.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="card ai-summary-card ask-ai-card">
+    <div class="card-content">
+      <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Ask Health Dynamics</p>
+      <h2 class="title is-3 mb-2">Your Population Health Analyst</h2>
+      <p class="table-caption mb-4">Ask what changed, why it matters, and what management should explore next.</p>
+      <div class="buttons mb-4">
+        <button class="button is-light placeholder-question" type="button" data-placeholder-question="What changed this year?">What changed this year?</button>
+        <button class="button is-light placeholder-question" type="button" data-placeholder-question="Which departments need attention?">Which departments need attention?</button>
+        <button class="button is-light placeholder-question" type="button" data-placeholder-question="What are the biggest health risks?">What are the biggest health risks?</button>
+        <button class="button is-light placeholder-question" type="button" data-placeholder-question="What should management explore next?">What should management explore next?</button>
+      </div>
+      <div class="field">
+        <label class="label" for="ask-ai-question">Question</label>
+        <div class="control">
+          <textarea
+            id="ask-ai-question"
+            class="textarea"
+            placeholder="Ask about what changed, why it matters, and what management should explore next."
+          ></textarea>
+        </div>
+      </div>
+      <div class="buttons mb-3">
+        <button id="ask-ai-button" class="button is-link">Ask</button>
+      </div>
+      <div id="ask-ai-status" class="has-text-grey mb-3"></div>
+      <div id="ask-ai-error" class="notification is-danger is-light is-hidden"></div>
+      <div id="ask-ai-output" class="content ai-summary-output box has-background-light is-hidden"></div>
+      <p class="ai-summary-disclaimer mt-3 mb-0">
+        AI-generated interpretation is for population health decision support only and is not medical diagnosis or treatment advice.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="card brief-card">
+    <div class="card-content">
+      <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Recommended Exploration</p>
+      <h2 class="title is-4 mb-3">Recommended Exploration Buttons</h2>
+      <div class="buttons">
+        {% if persisted_executive_brief.available and persisted_executive_brief.exploration_actions %}
+          {% for action in persisted_executive_brief.exploration_actions %}
+          <a
+            class="button is-light"
+            href="{{ url_for('main.dashboard_explore', year=action.year, metric=action.metric, dimension=action.dimension, pattern=action.pattern) }}"
+          >{{ action.label }}</a>
+          {% endfor %}
+        {% else %}
+          {% for item in executive_brief.recommended_next_exploration %}
+          <span class="tag is-light is-medium">{{ item }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="card brief-card exploration-result-panel">
+    <div class="card-content">
+      <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Exploration Result</p>
+      <h2 class="title is-4 mb-3">Exploration Result</h2>
+      <div id="exploration-status" class="has-text-grey mb-3">Select a recommended exploration to generate a focused explanation.</div>
+      <div id="exploration-warning" class="notification is-warning is-light is-hidden"></div>
+      <div id="exploration-error" class="notification is-danger is-light is-hidden"></div>
+
+      <div id="exploration-answer-panel" class="box has-background-light is-hidden">
+        <h3 class="title is-6 mb-2">Answer</h3>
+        <div id="exploration-answer" class="content"></div>
+      </div>
+
+      <div id="exploration-chart-panel" class="box is-hidden">
+        <h3 class="title is-6 mb-2">Chart</h3>
+        <pre id="exploration-chart" class="mb-0"></pre>
+      </div>
+
+      <div id="exploration-table-panel" class="box is-hidden">
+        <h3 class="title is-6 mb-2">Table</h3>
         <div class="table-container">
-          <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
+          <table id="exploration-table" class="table is-fullwidth is-striped is-hoverable dashboard-table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="exploration-evidence-panel" class="box is-hidden">
+        <h3 class="title is-6 mb-2">Evidence</h3>
+        <div id="exploration-evidence" class="content"></div>
+      </div>
+
+      <div id="exploration-next-panel" class="box is-hidden">
+        <h3 class="title is-6 mb-2">Suggested Next Questions</h3>
+        <div id="exploration-next-questions" class="buttons"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="level mb-3">
+    <div class="level-left">
+      <div>
+        <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Supporting Evidence</p>
+        <h2 class="title is-3 mb-1">Supporting Evidence</h2>
+        <p class="table-caption mb-0">Use these supporting indicators to validate the executive brief and understand current population burden.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="columns is-multiline is-variable is-4 mb-5">
+    <div class="column is-6-tablet is-3-desktop">
+      <div class="box risk-card">
+        <p class="heading has-text-grey">Total Persons</p>
+        <p class="risk-value mt-3">{{ totals.persons }}</p>
+      </div>
+    </div>
+    <div class="column is-6-tablet is-3-desktop">
+      <div class="box risk-card">
+        <p class="heading has-text-grey">Checkup Snapshots</p>
+        <p class="risk-value mt-3">{{ totals.snapshots }}</p>
+      </div>
+    </div>
+    <div class="column is-6-tablet is-3-desktop">
+      <div class="box risk-card">
+        <p class="heading has-text-grey">Lab Measurements</p>
+        <p class="risk-value mt-3">{{ totals.measurements }}</p>
+      </div>
+    </div>
+    <div class="column is-6-tablet is-3-desktop">
+      <div class="box risk-card">
+        <p class="heading has-text-grey">Trajectory Records</p>
+        <p class="risk-value mt-3">{{ totals.trajectories }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="columns is-multiline is-variable is-4">
+    <div class="column is-12">
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">Key Risk Signals</h3>
+        <p class="table-caption mb-0">Percentages are based on the latest available person-level marker values.</p>
+        <div class="columns is-multiline is-variable is-4 mt-2">
+          {% for signal in key_risk_signals %}
+          <div class="column is-6-tablet is-4-desktop is-one-fifth-widescreen">
+            <div class="box risk-card">
+              <p class="heading has-text-grey">{{ signal.label }}</p>
+              <p class="risk-value mt-3">{{ "%.1f"|format(signal.percentage) }}%</p>
+              <p class="has-text-grey mb-0 mt-2">{{ signal.numerator }} people</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="column is-6-desktop">
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">NCD Risk Burden</h3>
+        <p class="table-caption mb-4">Population grouped by the number of abnormal markers across BMI, glucose, LDL, triglyceride, and HDL.</p>
+        <div class="table-container">
+          <table id="burden-table" class="table is-fullwidth is-striped is-hoverable dashboard-table">
             <thead>
               <tr>
-                <th>Status</th>
-                <th class="has-text-right">Count</th>
+                <th>Abnormal Marker Group</th>
+                <th class="has-text-right">Persons</th>
+                <th class="has-text-right">Population %</th>
               </tr>
             </thead>
             <tbody>
-              {% for status, count in bmi_distribution %}
+              {% for row in ncd_risk_burden %}
               <tr>
-                <td>{{ status }}</td>
-                <td class="has-text-right">{{ count }}</td>
+                <td>{{ row.group }}</td>
+                <td class="has-text-right">{{ row.count }}</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.percentage) }}%</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -105,118 +398,678 @@
     </div>
 
     <div class="column is-6-desktop">
-      <div class="box dashboard-card">
-        <h2 class="title is-4 mb-3">Glucose Status Distribution</h2>
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">Privacy Note</h3>
+        <p class="table-caption mb-0">Person names and department labels are intentionally excluded from this population dashboard. Use CMS codes as the operational identifier until a department-ready dataset is available.</p>
+      </div>
+    </div>
+
+    <div class="column is-12">
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">High-Risk Person List</h3>
+        <p class="table-caption mb-4">Top 20 CMS codes ranked by abnormal marker count from the latest BMI, glucose, LDL, triglyceride, and HDL values.</p>
+        <div class="table-container">
+          <table id="high-risk-table" class="table is-fullwidth is-striped is-hoverable dashboard-table">
+            <thead>
+              <tr>
+                <th>CMS Code</th>
+                <th class="has-text-right">Age</th>
+                <th class="has-text-right">BMI</th>
+                <th class="has-text-right">Glucose</th>
+                <th class="has-text-right">LDL</th>
+                <th class="has-text-right">TG</th>
+                <th class="has-text-right">HDL</th>
+                <th class="has-text-right">Abnormal Markers</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in high_risk_persons %}
+              <tr>
+                <td>
+                  <a class="table-link" href="{{ url_for('main.person_detail', person_id=row.person.person_key) }}">{{ row.person.cms_code }}</a>
+                </td>
+                <td class="has-text-right">{{ row.age if row.age is not none else "-" }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.bmi) if row.bmi is not none else "-" }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.glucose) if row.glucose is not none else "-" }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.ldl) if row.ldl is not none else "-" }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.tg) if row.tg is not none else "-" }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.hdl) if row.hdl is not none else "-" }}</td>
+                <td class="has-text-right">{{ row.abnormal_marker_count }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="level mb-3">
+    <div class="level-left">
+      <div>
+        <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Trend Charts</p>
+        <h2 class="title is-3 mb-1">Trend Charts</h2>
+        <p class="table-caption mb-0">Year-over-year trend tables separate all-person annual change from matched-person movement.</p>
+      </div>
+    </div>
+  </div>
+
+  {% if yoy_brief.available %}
+  <div class="columns is-multiline is-variable is-4">
+    <div class="column is-12">
+      <div class="box section-card">
+        <h3 class="title is-5 mb-1">Cross-Sectional Year Comparison</h3>
+        <p class="table-caption mb-4">Among all people checked in each year, what percent were abnormal?</p>
         <div class="table-container">
           <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th class="has-text-right">Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for status, count in glucose_distribution %}
-                <tr>
-                  <td>{{ status }}</td>
-                  <td class="has-text-right">{{ count }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+            <thead>
+              <tr>
+                <th>Measure</th>
+                <th class="has-text-right">Previous Denominator</th>
+                <th class="has-text-right">Latest Denominator</th>
+                <th class="has-text-right">Previous Abnormal %</th>
+                <th class="has-text-right">Latest Abnormal %</th>
+                <th class="has-text-right">Delta (percentage points)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in yoy_brief.cross_sectional_comparison %}
+              <tr>
+                <td>{{ row.measure }}</td>
+                <td class="has-text-right">{{ row.denominator_previous }}</td>
+                <td class="has-text-right">{{ row.denominator_latest }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.abnormal_percent_previous) }}%</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.abnormal_percent_latest) }}%</td>
+                <td class="has-text-right">{{ "%+.2f"|format(row.delta_percentage_points) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
     <div class="column is-12">
-      <div class="box dashboard-card">
-        <h2 class="title is-4 mb-3">Lipid Status Distribution</h2>
+      <div class="box section-card">
+        <h3 class="title is-5 mb-1">Matched Cohort Year Comparison</h3>
+        <p class="table-caption mb-4">Among people present in both years, what percent were abnormal in each year?</p>
         <div class="table-container">
           <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
-              <thead>
-                <tr>
-                  <th>Measure</th>
-                  <th class="has-text-right">Normal</th>
-                  <th class="has-text-right">Borderline</th>
-                  <th class="has-text-right">Abnormal</th>
-                  <th class="has-text-right">Unknown</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in lipid_distribution %}
-                <tr>
-                  <td>{{ row.measure_code }}</td>
-                  <td class="has-text-right">{{ row.normal }}</td>
-                  <td class="has-text-right">{{ row.borderline }}</td>
-                  <td class="has-text-right">{{ row.abnormal }}</td>
-                  <td class="has-text-right">{{ row.unknown }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+            <thead>
+              <tr>
+                <th>Measure</th>
+                <th class="has-text-right">Matched Denominator</th>
+                <th class="has-text-right">Previous Abnormal %</th>
+                <th class="has-text-right">Latest Abnormal %</th>
+                <th class="has-text-right">Delta (percentage points)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in yoy_brief.matched_cohort_comparison %}
+              <tr>
+                <td>{{ row.measure }}</td>
+                <td class="has-text-right">{{ row.denominator_matched }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.abnormal_percent_previous_matched) }}%</td>
+                <td class="has-text-right">{{ "%.2f"|format(row.abnormal_percent_latest_matched) }}%</td>
+                <td class="has-text-right">{{ "%+.2f"|format(row.delta_percentage_points_matched) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="notification empty-trajectory-note">
+    Year-over-year briefing requires at least two checkup years. Current dashboard shows available cross-sectional results.
+  </div>
+  {% endif %}
+</section>
+
+<section class="mt-6 mb-5">
+  <div class="level mb-3">
+    <div class="level-left">
+      <div>
+        <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Movement Analysis</p>
+        <h2 class="title is-3 mb-1">Movement Analysis</h2>
+        <p class="table-caption mb-0">Trajectory records show how people move between risk states across checkup years.</p>
+      </div>
+    </div>
+  </div>
+
+  {% if has_trajectory_data %}
+  <div class="columns is-multiline is-variable is-4">
+    <div class="column is-6-desktop">
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">Population Movement Summary</h3>
+        <p class="table-caption mb-4">Counts and percentages for the major status transitions in the trajectory fact table.</p>
+        <div class="table-container">
+          <table id="movement-summary-table" class="table is-fullwidth is-striped is-hoverable dashboard-table">
+            <thead>
+              <tr>
+                <th>Status Transition</th>
+                <th class="has-text-right">Count</th>
+                <th class="has-text-right">Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in movement_summary %}
+              <tr>
+                <td>{{ row.transition }}</td>
+                <td class="has-text-right">{{ row.count }}</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.percentage) }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
     <div class="column is-6-desktop">
-      <div class="box dashboard-card">
-        <h2 class="title is-4 mb-3">Trajectory Class Distribution</h2>
-        {% if has_trajectory_data %}
-        <div class="table-container">
-          <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
-              <thead>
-                <tr>
-                  <th>Trajectory Class</th>
-                  <th class="has-text-right">Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for trajectory_class, count in trajectory_class_distribution %}
-                <tr>
-                  <td>{{ trajectory_class }}</td>
-                  <td class="has-text-right">{{ count }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">Movement Interpretation</h3>
+        <p class="table-caption mb-4">Rule-based reading of the dominant movement patterns in the current trajectory dataset.</p>
+        {% for message in movement_interpretations %}
+        <div class="notification movement-callout">
+          {{ message }}
         </div>
-        {% else %}
-        <div class="notification dashboard-note mb-0">
-          No trajectory records available. Load multi-year data to enable trajectory analysis.
-        </div>
-        {% endif %}
+        {% endfor %}
       </div>
     </div>
 
-    <div class="column is-6-desktop">
-      <div class="box dashboard-card">
-        <h2 class="title is-4 mb-3">Status Transition Distribution</h2>
-        {% if has_trajectory_data %}
+    <div class="column is-12">
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">Department Movement Summary</h3>
+        <p class="table-caption mb-4">Trajectory dynamics grouped by department, including worsening, higher-risk, and persistent abnormal movement.</p>
         <div class="table-container">
-          <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
-              <thead>
-                <tr>
-                  <th>Status Transition</th>
-                  <th class="has-text-right">Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for status_transition, count in status_transition_distribution %}
-                <tr>
-                  <td>{{ status_transition }}</td>
-                  <td class="has-text-right">{{ count }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+          <table id="department-movement-table" class="table is-fullwidth is-striped is-hoverable dashboard-table">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th class="has-text-right">Persons with Trajectories</th>
+                <th class="has-text-right">Improving %</th>
+                <th class="has-text-right">Stable %</th>
+                <th class="has-text-right">Worsening %</th>
+                <th class="has-text-right">Higher-Risk %</th>
+                <th class="has-text-right">Remaining Abnormal %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in department_movement_summary %}
+              <tr>
+                <td>{{ row.department }}</td>
+                <td class="has-text-right">{{ row.person_count }}</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.improving_pct) }}%</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.stable_pct) }}%</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.worsening_pct) }}%</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.higher_risk_pct) }}%</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.remaining_abnormal_pct) }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        {% else %}
-        <div class="notification dashboard-note mb-0">
-          No trajectory records available. Load multi-year data to enable trajectory analysis.
-        </div>
-        {% endif %}
       </div>
     </div>
-  </section>
-</div>
+
+    <div class="column is-7-desktop">
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">Measure-Specific Movement</h3>
+        <p class="table-caption mb-4">Transitions summarized by measure to show where deterioration and recovery concentrate.</p>
+        <div class="table-container">
+          <table id="measure-movement-table" class="table is-fullwidth is-striped is-hoverable dashboard-table">
+            <thead>
+              <tr>
+                <th>Measure Name</th>
+                <th class="has-text-right">Normal to Borderline</th>
+                <th class="has-text-right">Normal to Abnormal</th>
+                <th class="has-text-right">Borderline to Abnormal</th>
+                <th class="has-text-right">Abnormal to Abnormal</th>
+                <th class="has-text-right">Abnormal to Normal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in measure_movement_summary %}
+              <tr>
+                <td>{{ row.measure_name }}</td>
+                <td class="has-text-right">{{ row.normal_to_borderline }}</td>
+                <td class="has-text-right">{{ row.normal_to_abnormal }}</td>
+                <td class="has-text-right">{{ row.borderline_to_abnormal }}</td>
+                <td class="has-text-right">{{ row.abnormal_to_abnormal }}</td>
+                <td class="has-text-right">{{ row.abnormal_to_normal }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="column is-5-desktop">
+      <div class="box section-card">
+        <h3 class="title is-4 mb-1">Priority Intervention List</h3>
+        <p class="table-caption mb-4">Departments ranked by worsening movement, higher-risk transitions, and persistent abnormal trajectories.</p>
+        <div class="table-container">
+          <table id="priority-department-table" class="table is-fullwidth is-striped is-hoverable dashboard-table">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th class="has-text-right">Worsening %</th>
+                <th class="has-text-right">Higher-Risk %</th>
+                <th class="has-text-right">Persistent Abnormal %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in priority_intervention_list %}
+              <tr>
+                <td>{{ row.department }}</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.worsening_pct) }}%</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.higher_risk_pct) }}%</td>
+                <td class="has-text-right">{{ "%.1f"|format(row.remaining_abnormal_pct) }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="notification empty-trajectory-note">
+    Health Movement Analysis requires at least two checkup years. No trajectory records are available yet.
+  </div>
+  {% endif %}
+</section>
+
+<section class="mb-5">
+  <div class="box section-card">
+    <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Archetypes</p>
+    <h2 class="title is-3 mb-1">Archetypes</h2>
+    {% if archetype_summary.available %}
+    <p class="table-caption mb-4">Common long-term patterns help explain which measures are improving, worsening, or staying high over time.</p>
+    <div class="columns is-variable is-4">
+      <div class="column is-4">
+        <div class="box risk-card">
+          <p class="heading has-text-grey">Most Common Archetype</p>
+          <p class="title is-5 mt-3">{{ archetype_summary.distribution[0].archetype }}</p>
+          <p class="has-text-grey mb-0">{{ archetype_summary.distribution[0].count }} records</p>
+        </div>
+      </div>
+      <div class="column is-4">
+        <div class="box risk-card">
+          <p class="heading has-text-grey">Top Progressive Measure</p>
+          <p class="title is-5 mt-3">{{ archetype_summary.progressive_deterioration_measures[0].measure if archetype_summary.progressive_deterioration_measures else "-" }}</p>
+        </div>
+      </div>
+      <div class="column is-4">
+        <div class="box risk-card">
+          <p class="heading has-text-grey">Top Chronic High-Risk Measure</p>
+          <p class="title is-5 mt-3">{{ archetype_summary.chronic_high_risk_measures[0].measure if archetype_summary.chronic_high_risk_measures else "-" }}</p>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <p class="table-caption mb-0">{{ archetype_summary.message }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="box section-card">
+    <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Forecast</p>
+    <h2 class="title is-3 mb-1">Forecast</h2>
+    {% if forecast_summary.available %}
+    <p class="table-caption mb-4">These forecasts extend current population state patterns one year ahead. See the full [forecast]({{ url_for('main.forecast') }}) page for the transition matrix by measure.</p>
+    <div class="table-container">
+      <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
+        <thead>
+          <tr>
+            <th>Measure</th>
+            <th class="has-text-right">Current Abnormal Count</th>
+            <th class="has-text-right">Forecast Abnormal Count</th>
+            <th class="has-text-right">Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in forecast_summary.measures[:5] %}
+          <tr>
+            <td>{{ row.measure }}</td>
+            <td class="has-text-right">{{ row.current_abnormal_count }}</td>
+            <td class="has-text-right">{{ "%.2f"|format(row.forecast_abnormal_count) }}</td>
+            <td class="has-text-right">{{ "%+.2f"|format(row.abnormal_delta) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <a class="button is-light mt-3" href="{{ url_for('main.forecast') }}">Open Forecast Page</a>
+    {% else %}
+    <p class="table-caption mb-0">{{ forecast_summary.message }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="box section-card">
+    <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Data Quality</p>
+    <h2 class="title is-3 mb-1">Data Quality</h2>
+    {% if data_quality_summary.available %}
+    <p class="table-caption mb-4">These checks show whether missingness, invalid values, or limited transition data may affect interpretation.</p>
+    <div class="columns is-variable is-4">
+      <div class="column">
+        <div class="box risk-card">
+          <p class="heading has-text-grey">Total Checks</p>
+          <p class="risk-value mt-3">{{ data_quality_summary.summary.total_checks }}</p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="box risk-card">
+          <p class="heading has-text-grey">Warning Checks</p>
+          <p class="risk-value mt-3">{{ data_quality_summary.summary.warning_checks }}</p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="box risk-card">
+          <p class="heading has-text-grey">High-Risk Checks</p>
+          <p class="risk-value mt-3">{{ data_quality_summary.summary.high_risk_checks }}</p>
+        </div>
+      </div>
+    </div>
+    <a class="button is-light mt-3" href="{{ url_for('main.data_quality') }}">Open Data Quality Page</a>
+    {% else %}
+    <p class="table-caption mb-0">{{ data_quality_summary.message }}</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  $(function () {
+    $("#burden-table").DataTable({
+      paging: false,
+      searching: false,
+      info: false,
+      ordering: false
+    });
+
+    $("#high-risk-table").DataTable({
+      pageLength: 20,
+      order: [[7, "desc"], [0, "asc"]],
+      language: {
+        search: "Filter people:"
+      }
+    });
+
+    {% if has_trajectory_data %}
+    $("#movement-summary-table").DataTable({
+      paging: false,
+      searching: false,
+      info: false,
+      ordering: false
+    });
+
+    $("#department-movement-table").DataTable({
+      pageLength: 10,
+      order: [[4, "desc"], [5, "desc"]],
+      language: {
+        search: "Filter departments:"
+      }
+    });
+
+    $("#measure-movement-table").DataTable({
+      paging: false,
+      info: false,
+      order: [[0, "asc"]],
+      language: {
+        search: "Filter measures:"
+      }
+    });
+
+    $("#priority-department-table").DataTable({
+      paging: false,
+      info: false,
+      order: [[1, "desc"], [2, "desc"], [3, "desc"]],
+      language: {
+        search: "Filter priorities:"
+      }
+    });
+    {% endif %}
+
+    const regenerateExecutiveBriefButton = document.getElementById("regenerate-executive-brief-button");
+    const askButton = document.getElementById("ask-ai-button");
+    const askInput = document.getElementById("ask-ai-question");
+    const askStatusElement = document.getElementById("ask-ai-status");
+    const askErrorElement = document.getElementById("ask-ai-error");
+    const askOutputElement = document.getElementById("ask-ai-output");
+    const placeholderButtons = Array.from(document.querySelectorAll("[data-placeholder-question]"));
+    const explorationButtons = Array.from(document.querySelectorAll(".exploration-button"));
+    const explorationStatus = document.getElementById("exploration-status");
+    const explorationWarning = document.getElementById("exploration-warning");
+    const explorationError = document.getElementById("exploration-error");
+    const explorationAnswerPanel = document.getElementById("exploration-answer-panel");
+    const explorationAnswer = document.getElementById("exploration-answer");
+    const explorationChartPanel = document.getElementById("exploration-chart-panel");
+    const explorationChart = document.getElementById("exploration-chart");
+    const explorationTablePanel = document.getElementById("exploration-table-panel");
+    const explorationTable = document.getElementById("exploration-table");
+    const explorationEvidencePanel = document.getElementById("exploration-evidence-panel");
+    const explorationEvidence = document.getElementById("exploration-evidence");
+    const explorationNextPanel = document.getElementById("exploration-next-panel");
+    const explorationNextQuestions = document.getElementById("exploration-next-questions");
+
+    function resetExplorationPanels() {
+      explorationWarning.classList.add("is-hidden");
+      explorationWarning.textContent = "";
+      explorationError.classList.add("is-hidden");
+      explorationError.textContent = "";
+      explorationAnswerPanel.classList.add("is-hidden");
+      explorationAnswer.innerHTML = "";
+      explorationChartPanel.classList.add("is-hidden");
+      explorationChart.textContent = "";
+      explorationTablePanel.classList.add("is-hidden");
+      explorationTable.querySelector("thead").innerHTML = "";
+      explorationTable.querySelector("tbody").innerHTML = "";
+      explorationEvidencePanel.classList.add("is-hidden");
+      explorationEvidence.innerHTML = "";
+      explorationNextPanel.classList.add("is-hidden");
+      explorationNextQuestions.innerHTML = "";
+    }
+
+    function renderExplorationTable(tableData) {
+      const thead = explorationTable.querySelector("thead");
+      const tbody = explorationTable.querySelector("tbody");
+
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      if (!tableData || !tableData.columns || !tableData.rows || !tableData.rows.length) {
+        explorationTablePanel.classList.add("is-hidden");
+        return;
+      }
+
+      const headerRow = document.createElement("tr");
+      tableData.columns.forEach(function (column) {
+        const th = document.createElement("th");
+        th.textContent = column;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      tableData.rows.forEach(function (row) {
+        const tr = document.createElement("tr");
+        row.forEach(function (value) {
+          const td = document.createElement("td");
+          td.textContent = value;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      explorationTablePanel.classList.remove("is-hidden");
+    }
+
+    function renderMarkdown(targetElement, content) {
+      const text = content || "";
+      if (window.marked && typeof window.marked.parse === "function") {
+        targetElement.innerHTML = window.marked.parse(text);
+        return;
+      }
+      targetElement.textContent = text;
+    }
+
+    placeholderButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        askInput.value = button.dataset.placeholderQuestion;
+        askInput.focus();
+      });
+    });
+
+    if (regenerateExecutiveBriefButton) {
+      regenerateExecutiveBriefButton.addEventListener("click", async function () {
+        regenerateExecutiveBriefButton.disabled = true;
+        regenerateExecutiveBriefButton.textContent = "Regenerating...";
+        try {
+          await fetch("/dashboard/executive-brief/regenerate", { method: "POST" });
+          window.location.reload();
+        } finally {
+          regenerateExecutiveBriefButton.disabled = false;
+          regenerateExecutiveBriefButton.textContent = "Regenerate Executive Brief";
+        }
+      });
+    }
+
+    askButton.addEventListener("click", async function () {
+      const question = askInput.value.trim();
+
+      askErrorElement.classList.add("is-hidden");
+      askErrorElement.textContent = "";
+      askOutputElement.classList.add("is-hidden");
+      askOutputElement.textContent = "";
+
+      if (!question) {
+        askErrorElement.textContent = "Please enter a question.";
+        askErrorElement.classList.remove("is-hidden");
+        return;
+      }
+
+      askButton.disabled = true;
+      askStatusElement.textContent = "Generating answer...";
+
+      try {
+        const response = await fetch("/dashboard/ask-ai", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ question })
+        });
+        const payload = await response.json();
+
+        if (!payload.success) {
+          throw new Error(payload.error || "LLM service unavailable. Please start Ollama and try again.");
+        }
+
+        askOutputElement.textContent = payload.answer;
+        askOutputElement.classList.remove("is-hidden");
+        askStatusElement.textContent = payload.generated_at
+          ? `Generated with ${payload.model} at ${payload.generated_at}`
+          : `Generated with ${payload.model}`;
+      } catch (error) {
+        askErrorElement.textContent = error.message || "LLM service unavailable. Please start Ollama and try again.";
+        askErrorElement.classList.remove("is-hidden");
+        askStatusElement.textContent = "";
+      } finally {
+        askButton.disabled = false;
+      }
+    });
+
+    explorationButtons.forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const intent = button.dataset.intent;
+        const question = button.dataset.question;
+
+        explorationButtons.forEach(function (item) {
+          item.disabled = true;
+        });
+        resetExplorationPanels();
+        explorationStatus.textContent = "Exploring...";
+
+        try {
+          const response = await fetch("/explore/query", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              intent,
+              question
+            })
+          });
+          const payload = await response.json();
+
+          if (!response.ok && !payload.answer) {
+            throw new Error("Exploration request failed.");
+          }
+
+          renderMarkdown(
+            explorationAnswer,
+            payload.answer || "The dashboard does not contain enough information."
+          );
+          explorationAnswerPanel.classList.remove("is-hidden");
+          explorationStatus.textContent = payload.generated_at
+            ? `Exploration completed at ${payload.generated_at}`
+            : "Exploration completed.";
+
+          if (payload.warning) {
+            explorationWarning.textContent = payload.warning;
+            explorationWarning.classList.remove("is-hidden");
+          }
+
+          if (payload.chart_spec) {
+            explorationChart.textContent = JSON.stringify(payload.chart_spec, null, 2);
+            explorationChartPanel.classList.remove("is-hidden");
+          }
+
+          renderExplorationTable(payload.table_data);
+
+          if (payload.evidence && payload.evidence.length) {
+            const evidenceList = document.createElement("ul");
+            payload.evidence.forEach(function (item) {
+              const li = document.createElement("li");
+              li.textContent = item;
+              evidenceList.appendChild(li);
+            });
+            explorationEvidence.appendChild(evidenceList);
+            explorationEvidencePanel.classList.remove("is-hidden");
+          }
+
+          if (payload.suggested_next_questions && payload.suggested_next_questions.length) {
+            payload.suggested_next_questions.forEach(function (item) {
+              const chip = document.createElement("button");
+              chip.type = "button";
+              chip.className = "button is-small is-light";
+              chip.textContent = item;
+              chip.disabled = true;
+              explorationNextQuestions.appendChild(chip);
+            });
+            explorationNextPanel.classList.remove("is-hidden");
+          }
+        } catch (error) {
+          explorationError.textContent = error.message || "Unable to complete the exploration request.";
+          explorationError.classList.remove("is-hidden");
+          explorationStatus.textContent = "";
+        } finally {
+          explorationButtons.forEach(function (item) {
+            item.disabled = false;
+          });
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exploration.title if exploration.available else "Exploration" }} | Health Dynamics{% endblock %}
+
+{% block content %}
+<section class="mb-5">
+  <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Executive Exploration</p>
+  <h1 class="title is-2 mb-3">{{ exploration.title if exploration.available else "Exploration" }}</h1>
+  <div class="box decision-note">
+    <p class="mb-0">
+      {% if exploration.available %}
+      {{ exploration.explanation }}
+      {% else %}
+      {{ exploration.message }}
+      {% endif %}
+    </p>
+  </div>
+</section>
+
+{% if exploration.available %}
+<section class="mb-5">
+  <div class="card brief-card executive-hero">
+    <div class="card-content">
+      <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Exploration Brief</p>
+      <h2 class="title is-3 mb-4">Exploration Brief</h2>
+
+      {% if exploration_brief.available %}
+      <div class="box section-card">
+        <div class="content">
+          <h3 class="title is-5 mb-1">Key Finding</h3>
+          <p>{{ exploration_brief.key_finding }}</p>
+
+          <h3 class="title is-5 mb-1">Interpretation</h3>
+          <p>{{ exploration_brief.interpretation }}</p>
+
+          <h3 class="title is-5 mb-1">Suggested Next Investigation</h3>
+          <p class="mb-0">{{ exploration_brief.suggested_next_investigation }}</p>
+        </div>
+        <p class="table-caption mt-3 mb-0">
+          Generated via {{ exploration_brief.model_name or "deterministic fallback" }}.
+          Status: {{ exploration_brief.generation_status }} / {{ exploration_brief.validation_status }}.
+          {% if exploration_brief.diagnostic_message %}
+          {{ exploration_brief.diagnostic_message }}
+          {% endif %}
+        </p>
+      </div>
+      {% else %}
+      <div class="notification empty-trajectory-note mb-0">
+        The dashboard does not contain enough information to generate an Exploration Brief for this view.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="columns is-multiline is-variable is-4">
+    <div class="column is-4-desktop">
+      <div class="box section-card">
+        <p class="heading has-text-grey">Top Persistent Abnormal Group</p>
+        <p class="title is-5 mb-1">{{ exploration.summary.top_persistent_group }}</p>
+        <p class="table-caption mb-0">{{ "%.1f"|format(exploration.summary.top_persistent_pct) }}% persistent abnormal</p>
+      </div>
+    </div>
+    <div class="column is-4-desktop">
+      <div class="box section-card">
+        <p class="heading has-text-grey">Top Deteriorating Group</p>
+        <p class="title is-5 mb-1">{{ exploration.summary.top_deteriorating_group }}</p>
+        <p class="table-caption mb-0">{{ "%.1f"|format(exploration.summary.top_deteriorating_pct) }}% deteriorating</p>
+      </div>
+    </div>
+    <div class="column is-4-desktop">
+      <div class="box section-card">
+        <p class="heading has-text-grey">Total Matched Employees</p>
+        <p class="title is-3 mb-0">{{ exploration.summary.total_matched_employees }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-5">
+  <div class="card brief-card">
+    <div class="card-content">
+      <div class="level mb-4">
+        <div class="level-left">
+          <div>
+            <p class="decision-kicker is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Grouped Results</p>
+            <h2 class="title is-4 mb-1">{{ exploration.metric_label }} Exploration by {{ exploration.dimension_label }}</h2>
+            <p class="table-caption mb-0">Year pair: {{ exploration.previous_year }} to {{ exploration.year }}{% if exploration.pattern %} | Focus: {{ exploration.pattern_label }}{% endif %}</p>
+          </div>
+        </div>
+        <div class="level-right">
+          <a class="button is-light" href="{{ url_for('main.dashboard') }}">Back to Dashboard</a>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped is-hoverable dashboard-table">
+          <thead>
+            <tr>
+              <th>{{ exploration.dimension_label }}</th>
+              <th>Matched Employees</th>
+              <th>Persistent Abnormal %</th>
+              <th>Deteriorating %</th>
+              <th>Improving %</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in exploration.results %}
+            <tr>
+              <td>{{ row.group }}</td>
+              <td>{{ row.paired_n }}</td>
+              <td>{{ "%.1f"|format(row.persistent_abnormal_pct) }}</td>
+              <td>{{ "%.1f"|format(row.deteriorating_pct) }}</td>
+              <td>{{ "%.1f"|format(row.improving_pct) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% else %}
+<section class="mb-5">
+  <a class="button is-light" href="{{ url_for('main.dashboard') }}">Back to Dashboard</a>
+</section>
+{% endif %}
+{% endblock %}

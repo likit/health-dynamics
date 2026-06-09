@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Data Quality | Health Dynamics{% endblock %}
+
+{% block extra_head %}
+<style>
+  .quality-note {
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.95));
+    border: 1px solid rgba(15, 118, 110, 0.15);
+    border-radius: 1rem;
+  }
+
+  .quality-card {
+    border-radius: 1rem;
+    height: 100%;
+  }
+
+  .quality-value {
+    color: var(--brand-accent);
+    font-size: 2.15rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .warning-ok {
+    color: #15803d;
+    font-weight: 700;
+  }
+
+  .warning-caution {
+    color: #b45309;
+    font-weight: 700;
+  }
+
+  .warning-high_risk {
+    color: #b91c1c;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% macro level_badge(level) -%}
+<span class="warning-{{ level }}">{{ level.replace('_', ' ') }}</span>
+{%- endmacro %}
+
+{% macro quality_table(table_id, rows) -%}
+<div class="table-container">
+  <table id="{{ table_id }}" class="table is-fullwidth is-striped is-hoverable">
+    <thead>
+      <tr>
+        <th>Measure / Target</th>
+        <th class="has-text-right">Total Records</th>
+        <th class="has-text-right">Missing Count</th>
+        <th class="has-text-right">Missing %</th>
+        <th class="has-text-right">Invalid Count</th>
+        <th class="has-text-right">Invalid %</th>
+        <th>Warning</th>
+        <th>Interpretation</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.measure.measure_name if row.measure else row.target_field }}</td>
+        <td class="has-text-right">{{ row.total_records }}</td>
+        <td class="has-text-right">{{ row.missing_count }}</td>
+        <td class="has-text-right">{{ "%.2f"|format(row.missing_percent) }}%</td>
+        <td class="has-text-right">{{ row.invalid_count }}</td>
+        <td class="has-text-right">{{ "%.2f"|format(row.invalid_percent) }}%</td>
+        <td>{{ level_badge(row.warning_level) }}</td>
+        <td>{{ row.interpretation }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endmacro %}
+
+{% block content %}
+<section class="mb-5">
+  <p class="is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Warehouse Reliability</p>
+  <h1 class="title is-2 mb-3">Data Quality Review</h1>
+  <div class="box quality-note">
+    <p class="mb-0">This page summarizes completeness, plausibility, and readiness checks for the Health Dynamics warehouse and downstream analytics tables.</p>
+  </div>
+</section>
+
+{% if not summary %}
+<div class="notification is-light">
+  No data quality results are available yet. Run <code>python analytics/data_quality.py</code>.
+</div>
+{% else %}
+<section class="columns is-multiline is-variable is-4 mb-5">
+  <div class="column is-6-tablet is-3-desktop">
+    <div class="box quality-card">
+      <p class="heading has-text-grey">Total Checks</p>
+      <p class="quality-value mt-3">{{ summary.total_checks }}</p>
+    </div>
+  </div>
+  <div class="column is-6-tablet is-3-desktop">
+    <div class="box quality-card">
+      <p class="heading has-text-grey">OK</p>
+      <p class="quality-value mt-3">{{ summary.ok_count }}</p>
+    </div>
+  </div>
+  <div class="column is-6-tablet is-3-desktop">
+    <div class="box quality-card">
+      <p class="heading has-text-grey">Caution</p>
+      <p class="quality-value mt-3">{{ summary.caution_count }}</p>
+    </div>
+  </div>
+  <div class="column is-6-tablet is-3-desktop">
+    <div class="box quality-card">
+      <p class="heading has-text-grey">High Risk</p>
+      <p class="quality-value mt-3">{{ summary.high_risk_count }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="box mb-5">
+  <h2 class="title is-4 mb-3">Missingness by Measure</h2>
+  {{ quality_table("missingness-table", missingness_rows) }}
+</section>
+
+<section class="box mb-5">
+  <h2 class="title is-4 mb-3">Invalid Value Warnings</h2>
+  {{ quality_table("invalid-table", invalid_rows) }}
+</section>
+
+<section class="box mb-5">
+  <h2 class="title is-4 mb-3">Trajectory Readiness</h2>
+  {{ quality_table("trajectory-readiness-table", trajectory_rows) }}
+</section>
+
+<section class="box">
+  <h2 class="title is-4 mb-3">Forecast Readiness</h2>
+  {{ quality_table("forecast-readiness-table", forecast_rows) }}
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if summary %}
+<script>
+  $(function () {
+    $("#missingness-table").DataTable({
+      pageLength: 25,
+      order: [[3, "desc"]],
+      language: { search: "Filter missingness:" }
+    });
+    $("#invalid-table").DataTable({
+      pageLength: 25,
+      order: [[5, "desc"]],
+      language: { search: "Filter invalid checks:" }
+    });
+    $("#trajectory-readiness-table").DataTable({
+      pageLength: 25,
+      order: [[6, "desc"], [1, "asc"]],
+      language: { search: "Filter trajectory readiness:" }
+    });
+    $("#forecast-readiness-table").DataTable({
+      pageLength: 25,
+      order: [[6, "desc"], [1, "asc"]],
+      language: { search: "Filter forecast readiness:" }
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Forecast | Health Dynamics{% endblock %}
+
+{% block extra_head %}
+<style>
+  .forecast-note {
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.95));
+    border: 1px solid rgba(15, 118, 110, 0.15);
+    border-radius: 1rem;
+  }
+
+  .forecast-card {
+    border-radius: 1rem;
+    height: 100%;
+  }
+
+  .forecast-value {
+    color: var(--brand-accent);
+    font-size: 2.15rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .forecast-table th {
+    white-space: nowrap;
+  }
+
+  .matrix-cell {
+    min-width: 110px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="mb-5">
+  <p class="is-size-7 has-text-weight-semibold has-text-grey is-uppercase mb-2">Population Forecast</p>
+  <h1 class="title is-2 mb-3">Next-Year Health State Forecast</h1>
+  <div class="box forecast-note">
+    <p class="mb-0">This page summarizes current population state, one-year Markov forecasts, and the learned transition probabilities for each measure.</p>
+  </div>
+</section>
+
+{% if not forecast_rows %}
+<div class="notification is-light">
+  Forecast requires multi-year trajectory data.
+</div>
+{% else %}
+<section class="columns is-multiline is-variable is-4 mb-5">
+  <div class="column is-4-desktop">
+    <div class="box forecast-card">
+      <p class="heading has-text-grey">Selected Measure</p>
+      <p class="forecast-value mt-3">{{ selected_forecast.measure.measure_name }}</p>
+      <p class="has-text-grey mt-2 mb-0">Base year {{ selected_forecast.base_date.checkup_year if selected_forecast.base_date else "-" }}</p>
+    </div>
+  </div>
+  <div class="column is-4-desktop">
+    <div class="box forecast-card">
+      <p class="heading has-text-grey">Current Population</p>
+      <p class="forecast-value mt-3">{{ selected_forecast.current_normal_count + selected_forecast.current_borderline_count + selected_forecast.current_abnormal_count }}</p>
+      <p class="has-text-grey mt-2 mb-0">People represented in the current state vector</p>
+    </div>
+  </div>
+  <div class="column is-4-desktop">
+    <div class="box forecast-card">
+      <p class="heading has-text-grey">Forecast Horizon</p>
+      <p class="forecast-value mt-3">{{ selected_forecast.forecast_horizon_years }}</p>
+      <p class="has-text-grey mt-2 mb-0">Year ahead</p>
+    </div>
+  </div>
+</section>
+
+<section class="box mb-5">
+  <div class="level">
+    <div class="level-left">
+      <div>
+        <h2 class="title is-4 mb-1">Forecast by Measure</h2>
+        <p class="has-text-grey mb-0">Select a measure to inspect its transition matrix and narrative forecast.</p>
+      </div>
+    </div>
+    <div class="level-right">
+      <form method="get">
+        <div class="field is-grouped is-align-items-center">
+          <div class="control">
+            <div class="select">
+              <select name="measure_key" onchange="this.form.submit()">
+                {% for row in forecast_rows %}
+                <option value="{{ row.measure_key }}" {% if row.measure_key == selected_measure_key %}selected{% endif %}>
+                  {{ row.measure.measure_name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table id="forecast-summary-table" class="table is-fullwidth is-striped is-hoverable forecast-table">
+      <thead>
+        <tr>
+          <th>Measure</th>
+          <th class="has-text-right">Current Normal</th>
+          <th class="has-text-right">Current Borderline</th>
+          <th class="has-text-right">Current Abnormal</th>
+          <th class="has-text-right">Forecast Normal</th>
+          <th class="has-text-right">Forecast Borderline</th>
+          <th class="has-text-right">Forecast Abnormal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in forecast_rows %}
+        <tr>
+          <td>
+            <a class="table-link" href="{{ url_for('main.forecast', measure_key=row.measure_key) }}">{{ row.measure.measure_name }}</a>
+          </td>
+          <td class="has-text-right">{{ row.current_normal_count }}</td>
+          <td class="has-text-right">{{ row.current_borderline_count }}</td>
+          <td class="has-text-right">{{ row.current_abnormal_count }}</td>
+          <td class="has-text-right">{{ "%.2f"|format(row.forecast_normal_count) }}</td>
+          <td class="has-text-right">{{ "%.2f"|format(row.forecast_borderline_count) }}</td>
+          <td class="has-text-right">{{ "%.2f"|format(row.forecast_abnormal_count) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="columns is-variable is-4">
+  <div class="column is-7-desktop">
+    <div class="box">
+      <h2 class="title is-4 mb-3">Transition Probability Matrix</h2>
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped forecast-table">
+          <thead>
+            <tr>
+              <th>From \\ To</th>
+              <th class="has-text-right matrix-cell">Normal</th>
+              <th class="has-text-right matrix-cell">Borderline</th>
+              <th class="has-text-right matrix-cell">Abnormal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Normal</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.normal_to_normal_prob) }}</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.normal_to_borderline_prob) }}</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.normal_to_abnormal_prob) }}</td>
+            </tr>
+            <tr>
+              <td>Borderline</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.borderline_to_normal_prob) }}</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.borderline_to_borderline_prob) }}</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.borderline_to_abnormal_prob) }}</td>
+            </tr>
+            <tr>
+              <td>Abnormal</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.abnormal_to_normal_prob) }}</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.abnormal_to_borderline_prob) }}</td>
+              <td class="has-text-right">{{ "%.4f"|format(selected_forecast.abnormal_to_abnormal_prob) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="column is-5-desktop">
+    <div class="box">
+      <h2 class="title is-4 mb-3">Interpretation</h2>
+      <div class="content">
+        <p>{{ selected_forecast.interpretation }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if forecast_rows %}
+<script>
+  $(function () {
+    $("#forecast-summary-table").DataTable({
+      pageLength: 25,
+      order: [[0, "asc"]],
+      language: {
+        search: "Filter measures:"
+      }
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

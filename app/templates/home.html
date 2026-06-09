@@ -31,6 +31,9 @@
 </section>
 
 <section class="mt-6">
-  <a class="button is-primary is-medium" href="{{ url_for('main.persons') }}">Browse Persons</a>
+  <div class="buttons">
+    <a class="button is-primary is-medium" href="{{ url_for('main.dashboard') }}">Open Population Dashboard</a>
+    <a class="button is-light is-medium" href="{{ url_for('main.persons') }}">Browse Persons</a>
+  </div>
 </section>
 {% endblock %}

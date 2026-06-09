@@ -82,8 +82,11 @@
           </div>
           <div class="navbar-menu is-active">
             <div class="navbar-end">
-              <a class="navbar-item" href="{{ url_for('main.home') }}">Dashboard</a>
-              <a class="navbar-item" href="{{ url_for('main.dashboard') }}">Population</a>
+              <a class="navbar-item" href="{{ url_for('main.home') }}">Home</a>
+              <a class="navbar-item" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+              <a class="navbar-item" href="{{ url_for('main.forecast') }}">Forecast</a>
+              <a class="navbar-item" href="{{ url_for('main.data_quality') }}">Data Quality</a>
+              <a class="navbar-item" href="{{ url_for('main.executive_summary') }}">Executive Summary</a>
               <a class="navbar-item" href="{{ url_for('main.persons') }}">Persons</a>
             </div>
           </div>
@@ -95,6 +98,7 @@
       </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bulma.min.js"></script>
     {% block extra_scripts %}{% endblock %}
